@@ -1,26 +1,38 @@
-﻿namespace Calculator.Core;
+﻿using System.Data;
+
+namespace Calculator.Core;
 
 internal class Engine
 {
     public static void Start()
     {
-        Console.WriteLine("Gib eine Formel ein:");
-        string input = "2*(5+(9*10))*(2+4)";
-        Logic logic = new();
-        logic.Compute(input);
-        /*
-        try
+        while (true)
         {
+            Console.WriteLine("Gib eine Formel ein:");
+            string input = Console.ReadLine();
+            Logic logic = new();
+            double rightresult = logic.CheckResult(input);
             double result = logic.Compute(input);
-            Console.WriteLine($"Ergebnis: {result}");
+            Console.WriteLine(result);
+            if (rightresult == result)
+            {
+                Console.WriteLine("Term ist richtig");
+            }
+            else
+            {
+                Console.WriteLine("Term ist falsch ausgerechnet");
+            }
+
+            Console.WriteLine("Enter drücken, um das Programm zu beenden, tippe \"Weiter\" in deiner Sprache um Weiter zu machen.");
+            string option = Console.ReadLine();
+           
+            if (option == null)
+            {
+                Stop();
+            }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Fehler: {ex.Message}");
-        }*/
-        
     }
-    public static void Stop()
+    private static void Stop()
     {
         Environment.Exit(0);
     }

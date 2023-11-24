@@ -1,30 +1,98 @@
-﻿namespace Calculator.Shared;
+﻿using Calculator.Core;
+using System.Data;
+
+namespace Calculator.Shared;
 
 internal class Logic
 {
-    public void Compute(string input)
+    public double Compute(string expression)
     {
-        input = input.Replace(" ", "");
-        char[] ops = ['+','-', '*', '/', '%'];
-        char[] numf = ['1','2','3','4','5','6','7','8','9','0',',','.'];
-        char[] testing = ['(', ')'];
-
-        List<string> operators = CreateSnippets(input, ops);
-        List<string> numbers = CreateSnippets(input, numf);
-        List<string> test = CreateSnippets(input, testing);
-
-        numbers.ForEach(number => { Console.WriteLine($"{number}"); });
-        Console.WriteLine();
-        operators.ForEach(operators => { Console.WriteLine($"{operators}"); });
-        Console.WriteLine();
-        test.ForEach(operators => { Console.WriteLine($"{operators}"); });
-
-        //return Convert.ToInt32(input);
+        expression = expression.Replace(" ", "");
+        return ComputeAdditionSubtrahition(ref expression);
     }
 
-    private List<string> CreateSnippets(string input ,char[] x)
+    private double ComputeAdditionSubtrahition(ref string expression)
     {
-        return input.Split(x).ToList();
-    }
+        double leftValue = ComputeMultiplicationDivision(ref expression);
+        while (expression.Length > 0)
+        {
+            char op = expression[0];
+            if (op != '+' && op != '-')
+                break;
 
+            expression = expression.Substring(1); // Überspringe op
+
+            double rightValue = ComputeMultiplicationDivision(ref expression);
+
+            if (op == '+')
+                leftValue += rightValue;
+            else
+                leftValue -= rightValue;
+        }
+        return leftValue;
+    }
+    private double ComputeMultiplicationDivision(ref string expression)
+    {
+        double leftValue = ComputeKlammern(ref expression);
+
+        while (expression.Length > 0)
+        {
+            char op = expression[0];
+            if (op != '*' && op != '/')
+                break;
+
+            expression = expression.Substring(1); // Überspringe op
+
+            double rightValue = ComputeKlammern(ref expression);
+
+            if (op == '*')
+                leftValue *= rightValue;
+            else
+            {
+                if (rightValue == 0)
+                    throw new DivideByZeroException("Teilen durch Null ist nicht erlaubt.");
+                leftValue /= rightValue;
+            }
+        }
+        return leftValue;
+    }
+    private double ComputeKlammern(ref string expression)
+    {
+        if (expression.Length > 0 && expression[0] == '(')
+        {
+            expression = expression.Substring(1); // Überspringe "("
+            double innerValue = ComputeAdditionSubtrahition(ref expression);
+            if (expression.Length == 0 || expression[0] != ')')
+                throw new ArgumentException("Es fehlt eine Klammer!");
+            expression = expression.Substring(1); // Überspringe ")"
+            return innerValue;
+        }
+        return DetermineDigitValue(ref expression);
+
+    }
+    private double DetermineDigitValue(ref string expression)
+    {
+        int i = 0;
+        while (i < expression.Length && (char.IsDigit(expression[i]) || expression[i] == ','))
+        {
+            i++;
+        }
+
+        if (i == 0)
+            throw new ArgumentException("Ungültige Eingabe1");
+
+        string number = expression.Substring(0, i);
+        expression = expression.Substring(i);
+
+        return double.Parse(number);
+    }
+    public double CheckResult(string input)
+    {
+        DataTable datatable = new();
+        if (string.IsNullOrEmpty(input))
+        {
+            throw new ArgumentException();
+        }
+        return Convert.ToDouble(datatable.Compute(input,null));
+    }
 }
